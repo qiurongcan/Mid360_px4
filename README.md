@@ -5,6 +5,7 @@
 - ROS Noetic
 
 # MID360+PX4仿真
+在gazebo + px4 + mid360进行仿真
 ## 1.安装Livox-SDK2
 参考repo：`https://github.com/Livox-SDK/Livox-SDK2.git` 进行安装
 
@@ -63,12 +64,91 @@ roslaunch livox_laser_simulation mid360_IMU_platform.launch
 【但是这个不重要hhh】主要用的是他的插件，MID360在后面进行重新构建了
 
 ## 4.组装MID360+px4无人机
+**[默认安装好PX4环境]**
+v1.13版本之前的px4和之后的文件布局略有不同
 
+**v1.13.0版本包括之前**
+需要将 `Mid360` 文件夹复制到路径 `PX-Autopilot/Tools/sitl_gazebo/models/` 下  
+
+**v1.14.0之后的版本**
+需要将 `Mid360` 文件夹复制到路径 `PX-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/` 下
+
+
+**注意！！！！！！！！**  
+**注意！！！！！！！！**  
+**注意！！！！！！！！**  
+需要修改 `Mid360/Mid360.sdf` 文件中读取csv的路径，**见71行**，一定要修改为你电脑的路径，这也才能成功执行
+```xml
+70          <downsample>1</downsample>
+71          <csv_file_name>/home/amov/PX4-Autopilot/Tools/sitl_gazebo/models/Mid360/livox_mid40/scan_mode/mid360.csv</csv_file_name>
+72          <ros_topic>/scan</ros_topic>
+```
+
+这个有**iris**无人机，所以无需重复添加  
+之后再这里创建一个文件夹，如下
+1. 首先创建一个 `iris_mid360文` 件夹
+2. 创建两个文件`model.config` 和 `iris_mid360.sdf`  
+- **model.config**
+```xml
+<?xml version="1.0"?>
+<model>
+  <name>3DR Iris with mid360</name>
+  <version>1.0</version>
+  <sdf version='1.5'>iris_mid360.sdf</sdf>
+
+  <author>
+   <name>qiurongcan</name>
+   <email>qrc18760035045@163.com</email>
+  </author>
+
+  <description>
+    mid360
+  </description>
+</model>
+```
+
+- **iris_mid360.sdf**
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name='iris_mid360'>
+    <include>
+      <uri>model://iris</uri>
+    </include>
+    <include>
+      <uri>model://Mid360</uri>
+      <pose>0 0 0.05 0 0 0</pose>
+    </include>
+    <joint name="livox_joint" type="fixed">
+      <child>Mid360::livox_base</child>
+      <parent>iris::base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+  </model>
+</sdf>
+
+```
+如果想偷懒直接复制 `iris_mid360` 文件夹到这个目录即可  
+
+最后在`PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可
 ## 5.验证
+```shell
+# terminal 1 运行后弹出一个带有mid360的无人机模型
+roslaunch px4 mavros_posix_sitl.launch
 
+# terminal 2 查看话题并查看输出
+rostopic list | grep /scan
+rostopic echo /scan
+```
 
 # D435i+PX4仿真
-
+在gazebo + px4 + D435i进行仿真
 ## 1.安装realsense仿真驱动
 
 ## 2.拷贝仿真插件

@@ -68,7 +68,7 @@
           <visualize>1</visualize>
           <samples>24000</samples>
           <downsample>1</downsample>
-          <csv_file_name>/home/amov/PX4-Autopilot/Tools/sitl_gazebo/models/livox_mid40/scan_mode/mid360.csv</csv_file_name>
+          <csv_file_name>/home/amov/PX4-Autopilot/Tools/sitl_gazebo/models/Mid360/livox_mid40/scan_mode/mid360.csv</csv_file_name>
           <ros_topic>/scan</ros_topic>
         </plugin>
         <pose frame=''>-0.005 0.005 0.047 0 -0 0</pose>
