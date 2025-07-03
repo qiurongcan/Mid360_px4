@@ -136,7 +136,7 @@ v1.13版本之前的px4和之后的文件布局略有不同
 ```
 如果想偷懒直接复制 `iris_mid360` 文件夹到这个目录即可  
 
-最后在`PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可
+最后在`~/PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可
 ## 5.验证
 ```shell
 # terminal 1 运行后弹出一个带有mid360的无人机模型
@@ -149,16 +149,98 @@ rostopic echo /scan
 
 # D435i+PX4仿真
 在gazebo + px4 + D435i进行仿真
+参考repo: `https://gitee.com/nie_xun/realsense_ros_gazebo.git` 详细安装
 ## 1.安装realsense仿真驱动
-
+```shell
+# 如果有工作空间则直接使用即可（这里使用之前创建的空间）
+cd ~/catkin_ws/src
+git clone https://gitee.com/nie_xun/realsense_ros_gazebo.git
+cd ..
+catkin_make
+# 激活工作空间
+source devel/setup.bash
+roslaunch realsense_ros_gazebo simulation_D435i_sdf.launch
+# 或者使用
+roslaunch realsense_ros_gazebo simulation.launch
+```
 ## 2.拷贝仿真插件
+```shell
+cd ~/catkin_ws
+cp devel/lib/librealsense_gazebo_plugin.so ${path/to/px4}/build/px4_sitl_default/build_gazebo/
+```
+**如果在 `~/.bashrc` 中添加了工作空间路径，其实就没必要复制了**
 
 ## 3.组装D435i+px4无人机
+复制D435i相机模型到px4模型库中
+```shell
+cd ~/catkin_ws/src/realsense_ros_gazebo/sdf
+# v1.13.4版本包括之前版本
+cp D435i ~/PX-Autopilot/Tools/sitl_gazebo/models/
+# v1.14.0版本开始
+cp D435i ~/PX-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+```
+组装带D435i的iris
+1. 在px4模型库中新建一个 `iris_D435i` 文件夹
+2. 在文件夹中新建 `model.config` 和 `iris_D435i.sdf`
+**model.config**
+```xml
+<?xml version="1.0"?>
+<model>
+  <name>3DR Iris with D435i</name>
+  <version>1.0</version>
+  <sdf version='1.5'>iris_D435i.sdf</sdf>
+  <author>
+   <name>qiurongcan</name>
+   <email>qrc18760035045@163.com</email>
+  </author>
+  <description>
+    D435i
+  </description>
+</model>
+```
+**iris_D435i.sdf**
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name='iris_D435i'>
+    <include>
+      <uri>model://iris</uri>
+    </include>
+    <include>
+      <uri>model://D435i</uri>
+      <pose>0.12 0 0 1.5708 0 1.5708</pose>
+    </include>
+    <joint name="realsense_camera_joint" type="fixed">
+      <child>D435i::camera_link</child>
+      <parent>iris::base_link</parent>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+  </model>
+</sdf>
+```
+如果想偷懒直接复制 `iris_D435i` 文件夹到这个目录即可  
+最后在`~/PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可
 
 ## 4.验证
+```shell
+# terminal 1 运行后弹出一个带有D435i的无人机模型
+roslaunch px4 mavros_posix_sitl.launch
 
+# terminal 2 查看话题并查看输出
+rostopic list 
+
+# terminal 3 使用rqt查看图像
+rqt_image_view
+```
 
 # PX4+MID360+D435i无人机
-
+如果使用这两个组合，可以参考上述方法，或者直接复制仓库中的 `iris_mid360_D435i` 文件即可  
+**前提是Mid360和D435i都已经部署好了**
 
 
