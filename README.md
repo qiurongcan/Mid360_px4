@@ -86,7 +86,7 @@ v1.13版本之前的px4和之后的文件布局略有不同
 
 这个有**iris**无人机，所以无需重复添加  
 之后再这里创建一个文件夹，如下
-1. 首先创建一个 `iris_mid360文` 件夹
+1. 首先创建一个 `iris_mid360` 文件夹
 2. 创建两个文件`model.config` 和 `iris_mid360.sdf`  
 - **model.config**
 ```xml
@@ -136,7 +136,8 @@ v1.13版本之前的px4和之后的文件布局略有不同
 ```
 如果想偷懒直接复制 `iris_mid360` 文件夹到这个目录即可  
 
-最后在`~/PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可
+最后在`~/PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可  
+**需要在这个文件夹中替换为修改后iris_mid360这个路径**
 ## 5.验证
 ```shell
 # terminal 1 运行后弹出一个带有mid360的无人机模型
