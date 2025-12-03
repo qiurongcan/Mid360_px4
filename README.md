@@ -61,7 +61,7 @@ roslaunch livox_laser_simulation mid360_IMU_platform.launch
 - /lidar/imu
 如果需要使用Fast_lio,这个点云格式是没有办法直接使用的，需要进行格式转化，参考repo: `https://github.com/qiurongcan/Mid360_imu_sim.git` 中的方法
 
-【但是这个不重要hhh】主要用的是他的插件，MID360在后面进行重新构建了
+【但是这个不重要hhh】**主要用的是他的插件**，MID360在后面进行重新构建了
 
 ## 4.组装MID360+px4无人机
 **[默认安装好PX4环境]**
@@ -138,6 +138,19 @@ v1.13版本之前的px4和之后的文件布局略有不同
 
 最后在`~/PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可  
 **需要在这个文件夹中替换为修改后iris_mid360这个路径**
+
+[fix]现在需要将之前编译`livox_laser_simulation`的编译文件复制到px4中，**否则会没有/scan这个话题**  
+这里默认是编译好了livox_laser_simulation这个仓库，然后在其工作空间，`~/catkin_ws/devel/lib`目录下，有一个二进制文件`liblivox_laser_simulation.so`  
+**需要将这个文件复制到PX4中**
+在PX4 v1.14.0之后的版本
+```shell
+cp ~/catkin_ws/devel/lib/liblivox_laser_simulation.so   ~/PX4-Autopilot/build/px4_sitl_default/build_gazebo-classic/
+```
+在PX4 v1.14.0之前
+```shell
+cp ~/catkin_ws/devel/lib/liblivox_laser_simulation.so   ~/PX4-Autopilot/build/px4_sitl_default/build_gazebo/
+```
+
 ## 5.验证
 ```shell
 # terminal 1 运行后弹出一个带有mid360的无人机模型
