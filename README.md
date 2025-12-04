@@ -6,6 +6,10 @@
 
 # MID360+PX4仿真
 在gazebo + px4 + mid360进行仿真
+
+## 特别说明
+**`livox_ros_driver2`和`livox_laser_simulation`最好放在一个工作空间下，然后在全局环境中需要激活，否则会没有/scan这个话题**
+
 ## 1.安装Livox-SDK2
 参考repo：`https://github.com/Livox-SDK/Livox-SDK2.git` 进行安装
 
@@ -39,11 +43,20 @@ roslaunch livox_ros_driver2 [launch file]
 ```
 
 ## 3.安装livox_laser_simulation
-构建gazebo仿真插件
+注意，这个仓库有三个分支，拉取不同分支，mid360发布的消息不同
+|分支|消息类型|
+|:-----|:-----|
+|main |`sensor_msgs/PointCloud`|
+|PointCloud2_1| `sensor_msgs/PointCloud2`|
+|Custom| `livox_ros_driver2/CustomMsg`| 
+
+
+**构建gazebo仿真插件**
 ```shell
 # 也是在工作目录中创建功能包，如果之前创建过，则直接进入即可
 cd ~/catkin_ws/src
-git clone https://github.com/qiurongcan/Mid360_imu_sim.git
+# 拉取Custom这个分支比较好，不用消息转化，直接可以给Fastlio使用，如果要用其他消息，就拉取其他分支就行
+git clone -b Custom https://github.com/qiurongcan/Mid360_imu_sim.git
 cd ..
 catkin_make
 # 最好在~/.bashrc文件中全局激活工作空间路径
@@ -57,22 +70,20 @@ roslaunch livox_laser_simulation mid360_IMU_platform.launch
 `https://github.com/Livox-SDK/livox_laser_simulation.git`
 
 **注意2：** 如果使用IMU版本的这里的雷达输出只有以下两个话题，标准版只有一个话题：  
-- /scan sensor_msgs/PointCloud
+- /scan `livox_ros_driver2/CustomMsg`
 - /lidar/imu
-如果需要使用Fast_lio,这个点云格式是没有办法直接使用的，需要进行格式转化，参考repo: `https://github.com/qiurongcan/Mid360_imu_sim.git` 中的方法
 
-【但是这个不重要hhh】主要用的是他的插件，MID360在后面进行重新构建了
+【模型丑陋这个不重要hhh】主要用的是他的插件，`MID360模型`在后面进行重新构建了
 
 ## 4.组装MID360+px4无人机
 **[默认安装好PX4环境]**
 v1.13版本之前的px4和之后的文件布局略有不同
 
-**v1.13.0版本包括之前**
-需要将 `Mid360` 文件夹复制到路径 `PX-Autopilot/Tools/sitl_gazebo/models/` 下  
+**v1.14.0版本（不包括）之前**
+需要将 `Mid360` 和`iris_mid360`文件夹复制到路径 `PX-Autopilot/Tools/sitl_gazebo/models/` 下  
 
-**v1.14.0之后的版本**
-需要将 `Mid360` 文件夹复制到路径 `PX-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/` 下
-
+**v1.14.0版本（包括）之后的版本**
+需要将 `Mid360` 和`iris_mid360`文件夹复制到路径 `PX-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/` 下
 
 **注意！！！！！！！！**  
 **注意！！！！！！！！**  
@@ -84,59 +95,11 @@ v1.13版本之前的px4和之后的文件布局略有不同
 72          <ros_topic>/scan</ros_topic>
 ```
 
-这个有**iris**无人机，所以无需重复添加  
-之后再这里创建一个文件夹，如下
-1. 首先创建一个 `iris_mid360` 文件夹
-2. 创建两个文件`model.config` 和 `iris_mid360.sdf`  
-- **model.config**
-```xml
-<?xml version="1.0"?>
-<model>
-  <name>3DR Iris with mid360</name>
-  <version>1.0</version>
-  <sdf version='1.5'>iris_mid360.sdf</sdf>
-
-  <author>
-   <name>qiurongcan</name>
-   <email>qrc18760035045@163.com</email>
-  </author>
-
-  <description>
-    mid360
-  </description>
-</model>
-```
-
-- **iris_mid360.sdf**
-```xml
-<?xml version="1.0" ?>
-<sdf version="1.5">
-  <model name='iris_mid360'>
-    <include>
-      <uri>model://iris</uri>
-    </include>
-    <include>
-      <uri>model://Mid360</uri>
-      <pose>0 0 0.05 0 0 0</pose>
-    </include>
-    <joint name="livox_joint" type="fixed">
-      <child>Mid360::livox_base</child>
-      <parent>iris::base_link</parent>
-      <axis>
-        <xyz>0 0 1</xyz>
-        <limit>
-          <upper>0</upper>
-          <lower>0</lower>
-        </limit>
-      </axis>
-    </joint>
-  </model>
-</sdf>
-
-```
-如果想偷懒直接复制 `iris_mid360` 文件夹到这个目录即可  
-
 最后在`~/PX4-AutoPilot/launch/mavros_posix_sitl.launch` 文件中修改无人机的型号为新替换的这个即可  
+**注意！注意！**
+**注意！注意！**
+**一定要激活`livox_laser_simulation`功能包所在的工作空间，否则会没有雷达点云话题**
+
 **需要在这个文件夹中替换为修改后iris_mid360这个路径**
 ## 5.验证
 ```shell
@@ -146,6 +109,12 @@ roslaunch px4 mavros_posix_sitl.launch
 # terminal 2 查看话题并查看输出
 rostopic list | grep /scan
 rostopic echo /scan
+```
+[**补充说明**]
+如果要使用`FastLIO2`，在`mid360.yml`中的话题使用这两个
+```yaml
+lidar_topic: /scan
+imu_topic: /mavros/imu/data
 ```
 
 # D435i+PX4仿真
