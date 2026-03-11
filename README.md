@@ -32,7 +32,7 @@ mid360需要使用livox_ros_driver2进行驱动，livox_ros_driver不兼容
 # 在主目录下创建一个工作空间
 mkdir -p catkin_ws/src
 cd catkin/src
-git clone https://github.com/Livox-SDK/livox_ros_driver2.git ws_livox/src/livox_ros_driver2
+git clone https://github.com/Livox-SDK/livox_ros_driver2.git 
 cd livox_ros_driver2
 # 我是用的ROS1，如果使用ROS2参考原仓库安装
 ./build.sh ROS1
